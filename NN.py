@@ -10,19 +10,12 @@ def loadCSV(fileName):
     return data
 
 
-"""
-network=[[  {'weights': [0.1,0.1,0.1]}, #[w1, w3, w9]
-		    {'weights': [0.2,0.1,0.1]}], #[w2, w4, w10]
-        [   {'weights': [0.1,0.1,0.1]},  #[w5, w7, w11]
-            {'weights': [0.1,0.2,0.1]}]] #[w6, w8, w12]
-"""
 
 
-
-X1 = np.array(([0.1, 0.1]), dtype=float)
-X = np.array(([0.1,0.2]), dtype=float)
-y1 = np.array(([1,0]), dtype=float)
-y = np.array(([0,1]), dtype=float)
+X = np.array(([0.1, 0.1]), dtype=float)
+X1 = np.array(([0.1,0.2]), dtype=float)
+y = np.array(([1,0]), dtype=float)
+y1 = np.array(([0,1]), dtype=float)
 """
 W1 = np.array(([0.1, 0.1],[0.2, 0.1]), dtype=float)
 W2 = np.array(([0.1, 0.1],[0.1, 0.2]), dtype=float)
@@ -44,13 +37,14 @@ class Neural_Network(object):
         #W1 = input -> hidden layer weights
         #W2 =  hidden layer -> output weights
         #self.W1 = np.random.randn(self.inputSize, self.hiddenSize)
+        # (3x2) weight matrix from input to hidden layer
+        #self.W2 = np.random.randn(self.hiddenSize, self.outputSize) # (3x1) weight matrix from hidden to output layer
         self.W1 = np.array(([0.1, 0.1],[0.2, 0.1]), dtype=float)
         self.W2 = np.array(([0.1, 0.1],[0.1, 0.2]), dtype=float)
         self.bias1 = np.array(([0.1,0.1]), dtype=float)
         self.bias2 = np.array(([0.1,0.1]), dtype=float)
 
-        # (3x2) weight matrix from input to hidden layer
-        #self.W2 = np.random.randn(self.hiddenSize, self.outputSize) # (3x1) weight matrix from hidden to output layer
+
 
     def forward(self, X):
         #forward propagation through our network
@@ -72,24 +66,56 @@ class Neural_Network(object):
     def backward(self, X, y, o):
         # backward propagate through the network
         self.o_error = y - o # error in output
+        print("error in backward", self.o_error)
         self.o_delta = self.o_error*self.sigmoidPrime(o) # applying derivative of sigmoid to error
-
+        print("delta",self.o_delta)
         self.z2_error = self.o_delta.dot(self.W2.T) # z2 error: how much our hidden layer weights contributed to output error
+        print("how much hidden layer weights contributed",self.z2_error)
         self.z2_delta = self.z2_error*self.sigmoidPrime(self.z2) # applying derivative of sigmoid to z2 error
-
+        print("sigmoidprime to previous things")
         self.W1 += X.T.dot(self.z2_delta) # adjusting first set (input --> hidden) weights
+        print("context",self.z2)
         self.W2 += self.z2.T.dot(self.o_delta) # adjusting second set (hidden --> output) weights
+        print()
+        print(self.z2)
+        print("t", self.z2.T)
+        print("should be etot with respect to w5",self.z2.dot(self.o_delta))
+        print("here",np.matmul(self.z2, self.o_delta))
+
+    def backProp(self, X, y,o, error):
+        self.o_error = error # error in output
 
 
+    def findError(self, o):
+        meanSquare1 = 0.5*(y[0] -  o[0])**2
+        meanSquare2 =0.5*(y[1] -  o[1])**2
+        return meanSquare1 + meanSquare2
+        print(meanSquare1)
+        print(meanSquare2)
+
+"""
     def train(self,X,y):
         o = NN.forward(X)
         NN.backward(X,y,o)
-
+"""
 NN = Neural_Network()
-for i in range(3000000): # trains the NN 1,000 times
+resultForward =NN.forward(X)
+print("forward feed results",resultForward)
+meanSquare = NN.findError(resultForward)
+print("mean squared error",meanSquare)
+print()
+NN.backward(X,y,resultForward)
+#NN.backProp(X,y,resultForward,meanSquare)
+
+
+
+"""
+for i in range(3): # trains the NN 1,000 times
     NN.train(X, y)
+
 print("Input: \n" + str(X))
 print("Actual Output: \n" + str(y))
 print("Predicted Output: \n" + str(NN.forward(X)))
 print("Loss: \n" + str(np.mean(np.square(y - NN.forward(X))))) # mean sum squared loss
 print()
+"""
