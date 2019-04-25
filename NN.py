@@ -16,6 +16,8 @@ X = np.array(([0.1, 0.1]), dtype=float)
 X1 = np.array(([0.1,0.2]), dtype=float)
 y = np.array(([1,0]), dtype=float)
 y1 = np.array(([0,1]), dtype=float)
+mX = np.array(([0.1, 0.1],[0.1,0.2]), dtype=float)
+my = np.array(([1,0], [0,1]), dtype=float)
 """
 W1 = np.array(([0.1, 0.1],[0.2, 0.1]), dtype=float)
 W2 = np.array(([0.1, 0.1],[0.1, 0.2]), dtype=float)
@@ -45,6 +47,12 @@ class Neural_Network(object):
         self.bias2 = np.array(([0.1,0.1]), dtype=float)
 
 
+    def findError(self, o):
+        meanSquare1 = 0.5*(y[0] -  o[0])**2
+        meanSquare2 =0.5*(y[1] -  o[1])**2
+        return meanSquare1 + meanSquare2
+        print(meanSquare1)
+        print(meanSquare2)
 
     def forward(self, X):
         #forward propagation through our network
@@ -66,32 +74,47 @@ class Neural_Network(object):
     def backward(self, X, y, o):
         # backward propagate through the network
         self.o_error = y - o # error in output
-        print("error in backward", self.o_error)
         self.o_delta = self.o_error*self.sigmoidPrime(o) # applying derivative of sigmoid to error
         print("delta",self.o_delta)
         self.z2_error = self.o_delta.dot(self.W2.T) # z2 error: how much our hidden layer weights contributed to output error
-        print("how much hidden layer weights contributed",self.z2_error)
+        #print("how much hidden layer weights contributed",self.z2_error)
         self.z2_delta = self.z2_error*self.sigmoidPrime(self.z2) # applying derivative of sigmoid to z2 error
-        print("sigmoidprime to previous things")
+
         self.W1 += X.T.dot(self.z2_delta) # adjusting first set (input --> hidden) weights
-        print("context",self.z2)
         self.W2 += self.z2.T.dot(self.o_delta) # adjusting second set (hidden --> output) weights
+
+
+
+    def backProp(self, X, y,o):
+        self.o_error = y - o # error in output
+        self.o_delta = self.o_error*self.sigmoidPrime(o) # applying derivative of sigmoid to error
+        print("delta",self.o_delta)
         print()
-        print(self.z2)
-        print("t", self.z2.T)
-        print("should be etot with respect to w5",self.z2.dot(self.o_delta))
-        print("here",np.matmul(self.z2, self.o_delta))
+        print("outh1, outh2",self.z2)
+        #self.z2 = self.z2[::-1]
+        tmp = self.z2 * self.o_delta * -1
+        self.errorToNode = np.append (tmp, self.z2[::-1] * self.o_delta * -1)
+        print(self.errorToNode)
+        print(self.W2)
+        NN.miniBatch()
+        """ Bias 1 weight updates """
 
-    def backProp(self, X, y,o, error):
-        self.o_error = error # error in output
+        """ First Layer """
+
+        """ Bias 2 weight updates """
 
 
-    def findError(self, o):
-        meanSquare1 = 0.5*(y[0] -  o[0])**2
-        meanSquare2 =0.5*(y[1] -  o[1])**2
-        return meanSquare1 + meanSquare2
-        print(meanSquare1)
-        print(meanSquare2)
+    def miniBatch(self):
+        print()
+        print("miniBatch")
+        print(self.errorToNode)
+        #combinedError = (w11[0]*-1) + 0.07263347
+        #print(combinedError)
+        #newWeight = (n * combinedError) / 2
+        #weight = old - new
+        #print("new w5",newWeight)
+        #return newWeight
+
 
 """
     def train(self,X,y):
@@ -99,12 +122,16 @@ class Neural_Network(object):
         NN.backward(X,y,o)
 """
 NN = Neural_Network()
-resultForward =NN.forward(X)
+m = 2
+n = 0.1
+resultForward = NN.forward(X)
 print("forward feed results",resultForward)
 meanSquare = NN.findError(resultForward)
 print("mean squared error",meanSquare)
 print()
-NN.backward(X,y,resultForward)
+NN.backProp(X,y,resultForward)
+#NN.miniBatch(w5, w8,m, n )
+
 #NN.backProp(X,y,resultForward,meanSquare)
 
 
