@@ -1,4 +1,0 @@
-https://blog.zhaytam.com/2018/08/15/implement-neural-network-backpropagation/
-https://enlight.nyc/projects/neural-network/
-https://towardsdatascience.com/how-to-build-your-own-neural-network-from-scratch-in-python-68998a08e4f6
-https://www.python-course.eu/neural_networks_with_python_numpy.php
