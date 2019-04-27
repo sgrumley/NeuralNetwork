@@ -56,15 +56,8 @@ class Neural_Network(object):
         """ Second Layer """
         self.o_error = y - o # error in output
         self.o_delta = self.o_error*self.sigmoidPrime(o) # applying derivative of sigmoid to error
-        print("delta",self.o_delta)
         tmp = self.z2 * self.o_delta * -1
         self.errorToNode = np.append(tmp, self.z2[::-1] * self.o_delta * -1)
-
-        """ Second Bias """
-        self.summedBias2 = self.o_delta * -1
-
-        """ First Bias """
-        self.summedBias1 = self.o_delta * -1
 
         """ First Layer """
         self.z2_error = self.o_delta.dot(self.W2.T) # z2 error: how much our hidden layer weights contributed to output error
@@ -73,21 +66,15 @@ class Neural_Network(object):
         self.errorToNode2 = np.append(tmp, X[::-1] * self.z2_delta * -1)
 
         if currentM == 0:
-            self.summedBias2 = self.o_delta
-            self.summedBias1 = self.o_delta
+            self.summedBias2 = self.o_delta *-1
+            self.summedBias1 = self.z2_delta *-1
             self.summedLayer2 = self.errorToNode
             self.summedLayer1 = self.errorToNode2
         else:
             self.summedLayer2 += self.errorToNode
             self.summedLayer1 += self.errorToNode2
-            self.summedBias2 += self.o_delta
-            self.summedBias1 += self.o_delta
-
-
-        """ Bias 2 weight updates """
-
-        """ Bias 1 weight updates """
-
+            self.summedBias2 += self.o_delta *-1
+            self.summedBias1 +=  self.z2_delta *-1
 
 
 
@@ -107,6 +94,14 @@ class Neural_Network(object):
                 newWeight = (self.summedLayer2[count] * n) / m
                 self.W2[i][j] -= newWeight
                 count += 1
+        #Update Bias
+        for i in range(len(self.bias1)):
+            newWeight = (self.summedBias1[i] * n) / m
+            self.bias1[i] -= newWeight
+
+        for i in range(len(self.bias2)):
+            newWeight = (self.summedBias2[i] * n) / m
+            self.bias2[i] -= newWeight
 
     def miniBatch(self,n,m,mX,my):
         for i in range(m):
@@ -190,3 +185,14 @@ print()
 print("Mean Squared Error:")
 print("------------------------------")
 print("After: ", meanSquare)
+print()
+print("Hidden Bias Weights:")
+print("------------------------------")
+for i in range(len(NN.bias1)):
+    print("Weight", i+9, ":", NN.bias1[i])
+
+print()
+print("Output Bias Weights:")
+print("------------------------------")
+for i in range(len(NN.bias2)):
+    print("Weight", i+11, ":", NN.bias2[i])
