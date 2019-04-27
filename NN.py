@@ -10,24 +10,6 @@ def loadCSV(fileName):
     return data
 
 
-
-
-X = np.array(([0.1, 0.1]), dtype=float)
-X1 = np.array(([0.1,0.2]), dtype=float)
-y = np.array(([1,0]), dtype=float)
-y1 = np.array(([0,1]), dtype=float)
-mX = np.array(([0.1, 0.1],[0.1,0.2]), dtype=float)
-my = np.array(([1,0], [0,1]), dtype=float)
-"""
-W1 = np.array(([0.1, 0.1],[0.2, 0.1]), dtype=float)
-W2 = np.array(([0.1, 0.1],[0.1, 0.2]), dtype=float)
-"""
-# scale units
-"""
-X = X/np.amax(X, axis=0) # maximum of X array
-y = y/100 # max test score is 100
-"""
-
 class Neural_Network(object):
     def __init__(self):
         #parameters
@@ -47,19 +29,17 @@ class Neural_Network(object):
         self.bias2 = np.array(([0.1,0.1]), dtype=float)
 
 
-    def findError(self, o):
+    def findError(self, y, X):
+        o = NN.forward(X)
         meanSquare1 = 0.5*(y[0] -  o[0])**2
         meanSquare2 =0.5*(y[1] -  o[1])**2
         return meanSquare1 + meanSquare2
-        print(meanSquare1)
-        print(meanSquare2)
 
     def forward(self, X):
         #forward propagation through our network
         self.z = np.dot(X, self.W1) + self.bias1# dot product of X (input) and first set of 3x2 weights
         self.z2 = self.sigmoid(self.z) # activation function
         self.z3 = np.dot(self.z2, self.W2)+ self.bias2 # dot product of hidden layer (z2) and second set of 3x1 weights
-        #print("after second sum",self.z3)
         o = self.sigmoid(self.z3) # final activation function
         return o
 
@@ -71,78 +51,142 @@ class Neural_Network(object):
         #derivative of sigmoid
         return s * (1 - s)
 
-    def backward(self, X, y, o):
-        # backward propagate through the network
+
+    def backPropLayer2(self, X, y,o, currentM):
+        """ Second Layer """
         self.o_error = y - o # error in output
         self.o_delta = self.o_error*self.sigmoidPrime(o) # applying derivative of sigmoid to error
         print("delta",self.o_delta)
-        self.z2_error = self.o_delta.dot(self.W2.T) # z2 error: how much our hidden layer weights contributed to output error
-        #print("how much hidden layer weights contributed",self.z2_error)
-        self.z2_delta = self.z2_error*self.sigmoidPrime(self.z2) # applying derivative of sigmoid to z2 error
-
-        self.W1 += X.T.dot(self.z2_delta) # adjusting first set (input --> hidden) weights
-        self.W2 += self.z2.T.dot(self.o_delta) # adjusting second set (hidden --> output) weights
-
-
-
-    def backProp(self, X, y,o):
-        self.o_error = y - o # error in output
-        self.o_delta = self.o_error*self.sigmoidPrime(o) # applying derivative of sigmoid to error
-        print("delta",self.o_delta)
-        print()
-        print("outh1, outh2",self.z2)
-        #self.z2 = self.z2[::-1]
         tmp = self.z2 * self.o_delta * -1
-        self.errorToNode = np.append (tmp, self.z2[::-1] * self.o_delta * -1)
-        print(self.errorToNode)
-        print(self.W2)
-        NN.miniBatch()
-        """ Bias 1 weight updates """
+        self.errorToNode = np.append(tmp, self.z2[::-1] * self.o_delta * -1)
+
+        """ Second Bias """
+        self.summedBias2 = self.o_delta * -1
+
+        """ First Bias """
+        self.summedBias1 = self.o_delta * -1
 
         """ First Layer """
+        self.z2_error = self.o_delta.dot(self.W2.T) # z2 error: how much our hidden layer weights contributed to output error
+        self.z2_delta = self.z2_error*self.sigmoidPrime(self.z2) # applying derivative of sigmoid to z2 error
+        tmp = X * self.z2_delta * -1
+        self.errorToNode2 = np.append(tmp, X[::-1] * self.z2_delta * -1)
+
+        if currentM == 0:
+            self.summedBias2 = self.o_delta
+            self.summedBias1 = self.o_delta
+            self.summedLayer2 = self.errorToNode
+            self.summedLayer1 = self.errorToNode2
+        else:
+            self.summedLayer2 += self.errorToNode
+            self.summedLayer1 += self.errorToNode2
+            self.summedBias2 += self.o_delta
+            self.summedBias1 += self.o_delta
+
 
         """ Bias 2 weight updates """
 
-
-    def miniBatch(self):
-        print()
-        print("miniBatch")
-        print(self.errorToNode)
-        #combinedError = (w11[0]*-1) + 0.07263347
-        #print(combinedError)
-        #newWeight = (n * combinedError) / 2
-        #weight = old - new
-        #print("new w5",newWeight)
-        #return newWeight
+        """ Bias 1 weight updates """
 
 
-"""
-    def train(self,X,y):
-        o = NN.forward(X)
-        NN.backward(X,y,o)
-"""
+
+
+    def UpdateWeights(self, n, m):
+        """ update weights  """
+        #update first layer of weights
+        count = 0
+        for i in range(len(self.W1)):
+            for j in range(len(self.W1)):
+                newWeight = (self.summedLayer1[count] * n) / m
+                self.W1[i][j] -= newWeight
+                count += 1
+        #update second layer of weights
+        count = 0
+        for i in range(len(self.W2)):
+            for j in range(len(self.W2)):
+                newWeight = (self.summedLayer2[count] * n) / m
+                self.W2[i][j] -= newWeight
+                count += 1
+
+    def miniBatch(self,n,m,mX,my):
+        for i in range(m):
+            """ forward propergate """
+            resultForward = NN.forward(mX[i])
+            """ Back propergate through last layer """
+            NN.backPropLayer2(mX[i],my[i],resultForward, i)
+
+
+
+mX = np.array(([0.1, 0.1],[0.1,0.2]), dtype=float)
+my = np.array(([1,0], [0,1]), dtype=float)
+
+
 NN = Neural_Network()
 m = 2
 n = 0.1
-resultForward = NN.forward(X)
-print("forward feed results",resultForward)
-meanSquare = NN.findError(resultForward)
-print("mean squared error",meanSquare)
+
+
+meanSquare = NN.findError(my[1], mX[1])
+meanSquare += NN.findError(my[0], mX[0])
+meanSquare = meanSquare/2
 print()
-NN.backProp(X,y,resultForward)
-#NN.miniBatch(w5, w8,m, n )
+print("Mean Squared Error:")
+print("------------------------------")
+print("Before: ", meanSquare)
 
-#NN.backProp(X,y,resultForward,meanSquare)
-
-
-
-"""
-for i in range(3): # trains the NN 1,000 times
-    NN.train(X, y)
-
-print("Input: \n" + str(X))
-print("Actual Output: \n" + str(y))
-print("Predicted Output: \n" + str(NN.forward(X)))
-print("Loss: \n" + str(np.mean(np.square(y - NN.forward(X))))) # mean sum squared loss
 print()
-"""
+print("Weights")
+print("------------------------------")
+count = 0
+for i in range(len(NN.W1)):
+    for j in range(len(NN.W1)):
+        print("Weight", count+1, ":", NN.W1[i][j])
+        count+=1
+
+count = 0
+for i in range(len(NN.W2)):
+    for j in range(len(NN.W2)):
+        print("Weight", count+5, ":", NN.W2[i][j])
+        count+=1
+
+
+
+NN.miniBatch(n,m,mX,my)
+NN.UpdateWeights(n, m)
+
+""" print """
+print()
+p = NN.forward(mX[0])
+print("Input: 1")
+print("------------------------------")
+for i in range(len(p)):
+    print("Output", i+1, ":",p[i])
+p = NN.forward(mX[0])
+print()
+print("Input: 2")
+print("------------------------------")
+for i in range(len(p)):
+    print("Output", i+1, ":",p[i])
+
+print()
+print("Weights")
+print("------------------------------")
+count = 0
+for i in range(len(NN.W1)):
+    for j in range(len(NN.W1)):
+        print("Weight", count+1, ":", NN.W1[i][j])
+        count+=1
+
+count = 0
+for i in range(len(NN.W2)):
+    for j in range(len(NN.W2)):
+        print("Weight", count+5, ":", NN.W2[i][j])
+        count+=1
+
+meanSquare = NN.findError(my[1], mX[1])
+meanSquare += NN.findError(my[0], mX[0])
+meanSquare = meanSquare/2
+print()
+print("Mean Squared Error:")
+print("------------------------------")
+print("After: ", meanSquare)
