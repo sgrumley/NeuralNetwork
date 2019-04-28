@@ -111,90 +111,26 @@ class Neural_Network(object):
             NN.backPropLayer2(mX[i],my[i],resultForward, i)
 
 
-""" Driver """
+
+
 mX = np.array(([0.1, 0.1],[0.1,0.2]), dtype=float)
 my = np.array(([1,0], [0,1]), dtype=float)
 
+nX = loadCSV("TestDigitX2.csv.gz")
+print(len(nX))
 
 NN = Neural_Network()
 m = 2
 n = 0.1
+epochs = 1
 
+for i in range(epochs):
+    NN.miniBatch(n,m,mX,my)
+    NN.UpdateWeights(n, m)
+    meanSquare = NN.findError(my[1], mX[1])
+    meanSquare += NN.findError(my[0], mX[0])
+    meanSquare = meanSquare/2
+print(meanSquare)
 
-meanSquare = NN.findError(my[1], mX[1])
-meanSquare += NN.findError(my[0], mX[0])
-meanSquare = meanSquare/2
-print()
-print("Mean Squared Error:")
-print("------------------------------")
-print("Before: ", meanSquare)
-
-print()
-print("Weights")
-print("------------------------------")
-count = 0
-for i in range(len(NN.W1)):
-    for j in range(len(NN.W1)):
-        print("Weight", count+1, ":", NN.W1[i][j])
-        count+=1
-
-count = 0
-for i in range(len(NN.W2)):
-    for j in range(len(NN.W2)):
-        print("Weight", count+5, ":", NN.W2[i][j])
-        count+=1
-
-
-
-
-
-""" print """
-print()
-p = NN.forward(mX[0])
-print("Input: 1")
-print("------------------------------")
-for i in range(len(p)):
-    print("Output", i+1, ":",p[i])
-p = NN.forward(mX[1])
-print()
-print("Input: 2")
-print("------------------------------")
-for i in range(len(p)):
-    print("Output", i+1, ":",p[i])
-
-NN.miniBatch(n,m,mX,my)
-NN.UpdateWeights(n, m)
-
-print()
-print("Weights")
-print("------------------------------")
-count = 0
-for i in range(len(NN.W1)):
-    for j in range(len(NN.W1)):
-        print("Weight", count+1, ":", NN.W1[i][j])
-        count+=1
-
-count = 0
-for i in range(len(NN.W2)):
-    for j in range(len(NN.W2)):
-        print("Weight", count+5, ":", NN.W2[i][j])
-        count+=1
-
-meanSquare = NN.findError(my[1], mX[1])
-meanSquare += NN.findError(my[0], mX[0])
-meanSquare = meanSquare/2
-print()
-print("Mean Squared Error:")
-print("------------------------------")
-print("After: ", meanSquare)
-print()
-print("Hidden Bias Weights:")
-print("------------------------------")
-for i in range(len(NN.bias1)):
-    print("Weight", i+9, ":", NN.bias1[i])
-
-print()
-print("Output Bias Weights:")
-print("------------------------------")
-for i in range(len(NN.bias2)):
-    print("Weight", i+11, ":", NN.bias2[i])
+print(NN.forward(mX[0]))
+print(NN.forward(mX[1]))
