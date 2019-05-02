@@ -76,7 +76,7 @@ class Neural_Network(object):
             self.summedBias2 += self.o_delta *-1
             self.summedBias1 +=  self.z2_delta *-1
 
-
+    
 
     def UpdateWeights(self, n, m):
         """ update weights  """

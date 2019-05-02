@@ -12,7 +12,7 @@ def loadCSV(fileName):
 
 
 TestDigitX = loadCSV("TestDigitX2.csv.gz")
-print(len(TestDigitX[0]))
+print(TestDigitX[0])
 print(len(TestDigitX))
 count = 1
 for i in range(784):

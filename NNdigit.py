@@ -9,24 +9,31 @@ def loadCSV(fileName):
     print(fileName, " loaded in successfuly")
     return data
 
+def load_data_wrapper():
+    training_inputs = loadCSV('TrainDigitX.csv.gz')
+    results = loadCSV("TrainDigitY.csv.gz")
+    training_results = [vectorized_result(y) for y in results] # vectorised results
+    training_data = list(zip(training_inputs, training_results))
+    test_inputs = loadCSV("TestDigitX.csv.gz")
+    testResults =  loadCSV("TestDigitY.csv.gz")
+    test_data = list(zip(test_inputs, testResults))
+    return (training_data, test_data)
 
 class Neural_Network(object):
-    def __init__(self):
+    def __init__(self, Ninput, Nhidden, Noutput):
         #parameters
-        self.inputSize = 2
-        self.outputSize = 2
-        self.hiddenSize = 2
+        self.inputSize = Ninput
+        self.outputSize = Noutput
+        self.hiddenSize = Nhidden
 
         #weights
         #W1 = input -> hidden layer weights
         #W2 =  hidden layer -> output weights
-        #self.W1 = np.random.randn(self.inputSize, self.hiddenSize)
+        self.W1 = np.random.rand(self.inputSize, self.hiddenSize)
         # (3x2) weight matrix from input to hidden layer
-        #self.W2 = np.random.randn(self.hiddenSize, self.outputSize) # (3x1) weight matrix from hidden to output layer
-        self.W1 = np.array(([0.1, 0.1],[0.2, 0.1]), dtype=float)
-        self.W2 = np.array(([0.1, 0.1],[0.1, 0.2]), dtype=float)
-        self.bias1 = np.array(([0.1,0.1]), dtype=float)
-        self.bias2 = np.array(([0.1,0.1]), dtype=float)
+        self.W2 = np.random.rand(self.hiddenSize, self.outputSize) # (3x1) weight matrix from hidden to output layer
+        self.bias1 = np.random.rand(self.hiddenSize)
+        self.bias2 = np.random.rand(self.outputSize)
 
 
     def findError(self, y, X):
@@ -56,9 +63,8 @@ class Neural_Network(object):
         """ Second Layer """
         self.o_error = y - o # error in output
         self.o_delta = self.o_error*self.sigmoidPrime(o) # applying derivative of sigmoid to error
-        tmp = self.z2 * self.o_delta * -1
-        self.errorToNode = np.append(tmp, self.z2[::-1] * self.o_delta * -1)
-
+        #tmp = self.z2 * self.o_delta * -1
+        #self.errorToNode = np.append(tmp, self.z2[::-1] * self.o_delta * -1)
         """ First Layer """
         self.z2_error = self.o_delta.dot(self.W2.T) # z2 error: how much our hidden layer weights contributed to output error
         self.z2_delta = self.z2_error*self.sigmoidPrime(self.z2) # applying derivative of sigmoid to z2 error
@@ -116,21 +122,26 @@ class Neural_Network(object):
 mX = np.array(([0.1, 0.1],[0.1,0.2]), dtype=float)
 my = np.array(([1,0], [0,1]), dtype=float)
 
-nX = loadCSV("TestDigitX2.csv.gz")
-print(len(nX))
 
-NN = Neural_Network()
-m = 2
-n = 0.1
+X = loadCSV('TrainDigitX.csv.gz')
+Y = loadCSV("TrainDigitY.csv.gz")
+
+Ninput = 784
+Nhidden = 30
+Noutput = 10
+
+NN = Neural_Network(Ninput, Nhidden, Noutput)
+m = 20
+n = 3
 epochs = 1
 
 for i in range(epochs):
-    NN.miniBatch(n,m,mX,my)
+    NN.miniBatch(n,m,X,Y)
     NN.UpdateWeights(n, m)
     meanSquare = NN.findError(my[1], mX[1])
     meanSquare += NN.findError(my[0], mX[0])
     meanSquare = meanSquare/2
-print(meanSquare)
+print("avg",meanSquare)
 
-print(NN.forward(mX[0]))
-print(NN.forward(mX[1]))
+#print(NN.forward(mX[0]))
+#print(NN.forward(mX[1]))
