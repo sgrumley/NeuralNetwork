@@ -37,9 +37,9 @@ class Neural_Network(object):
 
     def forward(self, X):
         #forward propagation through our network
-        self.z = np.dot(X, self.W1) + self.bias1# dot product of X (input) and first set of 3x2 weights
+        self.z = np.dot(X, self.W1) + self.bias1
         self.z2 = self.sigmoid(self.z) # activation function
-        self.z3 = np.dot(self.z2, self.W2)+ self.bias2 # dot product of hidden layer (z2) and second set of 3x1 weights
+        self.z3 = np.dot(self.z2, self.W2)+ self.bias2
         o = self.sigmoid(self.z3) # final activation function
         return o
 
@@ -56,36 +56,43 @@ class Neural_Network(object):
         """ Second Layer """
         self.o_error = y - o # error in output
         self.o_delta = self.o_error*self.sigmoidPrime(o) # applying derivative of sigmoid to error
-        tmp = self.z2 * self.o_delta * -1
+        #tmp = self.z2 * self.o_delta * -1
         #instead of temp try a for loop and multiply each value by each
         tempp = []
         for i in range(len(self.z2)):
             for j in range(len(self.o_delta)):
                 testval = self.z2[i] * self.o_delta[j] *-1
-                print("c",testval)
                 tempp.append(testval)
 
-        print("change order????")
-        print(tempp)
-
-        self.errorToNode = np.append(tmp, self.z2[::-1] * self.o_delta * -1)
-        print("new weights",self.errorToNode)
+        #self.ErrorToNodeOuter = tempp
         """ First Layer """
         self.z2_error = self.o_delta.dot(self.W2.T) # z2 error: how much our hidden layer weights contributed to output error
         self.z2_delta = self.z2_error*self.sigmoidPrime(self.z2) # applying derivative of sigmoid to z2 error
-        tmp = X * self.z2_delta * -1
-        self.errorToNode2 = np.append(tmp, X[::-1] * self.z2_delta * -1)
+        tmp = X * self.z2_delta * -1 # can delete once order is matched
+        self.errorToNode2 = np.append(tmp, X[::-1] * self.z2_delta * -1) #can deltete
+        tempe = []
+        for i in range(len(self.z2_delta)):
+            for j in range(len(X)):
+                tester = self.z2_delta[i] * X[j] * -1
+                tempe.append(tester)
+
+        print("Test Error ", tempe)
+        print("needs to match order")
+        print("actual", self.errorToNode2)
+
 
         if currentM == 0:
             self.summedBias2 = self.o_delta *-1
             self.summedBias1 = self.z2_delta *-1
-            self.summedLayer2 = self.errorToNode
-            self.summedLayer1 = self.errorToNode2
+            self.summedLayer1 = tempe
+            self.summedLayer2 = tempp
         else:
-            self.summedLayer2 += self.errorToNode
-            self.summedLayer1 += self.errorToNode2
             self.summedBias2 += self.o_delta *-1
             self.summedBias1 +=  self.z2_delta *-1
+            for k in range(len(self.summedLayer1)):
+                self.summedLayer1[k] += tempe[k]
+            for k in range(len(self.summedLayer2)):
+                self.summedLayer2[k] += tempp[k]
 
 
 
@@ -100,11 +107,21 @@ class Neural_Network(object):
                 count += 1
         #update second layer of weights
         count = 0
+
+        print("summed layer test", self.summedLayer2)
         for i in range(len(self.W2)):
             for j in range(len(self.W2)):
                 newWeight = (self.summedLayer2[count] * n) / m
                 self.W2[i][j] -= newWeight
                 count += 1
+        """
+        for i in range(len(self.W2)):
+            for j in range(len(self.W2)):
+                newWeight = (self.summedLayer2[count] * n) / m
+                self.W2[i][j] -= newWeight
+                count += 1
+        """
+
         #Update Bias
         for i in range(len(self.bias1)):
             newWeight = (self.summedBias1[i] * n) / m
