@@ -11,12 +11,14 @@ def loadCSV(fileName):
     return data
 
 
-TestDigitX = loadCSV("TestDigitX2.csv.gz")
+TestDigitX = loadCSV("TrainDigitX.csv")
+TrainDigitY = loadCSV("TrainDigitY.csv")
+value = 25
 print(TestDigitX[0])
 print(len(TestDigitX))
 count = 1
 for i in range(784):
-    if TestDigitX[2][i] > 0.1:
+    if TestDigitX[value][i] > 0.1:
         print('1', end='')
     else:
         print('0', end='')
@@ -24,3 +26,4 @@ for i in range(784):
         count = 0
         print()
     count += 1
+print(TrainDigitY[value])
