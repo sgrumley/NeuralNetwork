@@ -54,16 +54,22 @@ class Neural_Network(object):
 
     def backPropLayer2(self, X, y,o, currentM):
         """ Second Layer """
+        print(")))))))))))))))))))))))))))))))))))))))))))")
         self.o_error = y - o # error in output
         self.o_delta = self.o_error*self.sigmoidPrime(o) # applying derivative of sigmoid to error
+        print("Delta", self.o_delta)
         tmp = self.z2 * self.o_delta * -1
         self.errorToNode = np.append(tmp, self.z2[::-1] * self.o_delta * -1)
+        print("error to node1",self.errorToNode)
 
         """ First Layer """
         self.z2_error = self.o_delta.dot(self.W2.T) # z2 error: how much our hidden layer weights contributed to output error
+        print("error2",self.z2_error)
         self.z2_delta = self.z2_error*self.sigmoidPrime(self.z2) # applying derivative of sigmoid to z2 error
+        print("delta 2", self.z2_delta)
         tmp = X * self.z2_delta * -1
         self.errorToNode2 = np.append(tmp, X[::-1] * self.z2_delta * -1)
+        print("errortonode2",self.errorToNode2)
 
         if currentM == 0:
             self.summedBias2 = self.o_delta *-1
@@ -76,7 +82,7 @@ class Neural_Network(object):
             self.summedBias2 += self.o_delta *-1
             self.summedBias1 +=  self.z2_delta *-1
 
-    
+
 
     def UpdateWeights(self, n, m):
         """ update weights  """

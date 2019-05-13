@@ -45,14 +45,17 @@ class Neural_Network(object):
     def forward(self, X):
         #forward propagation through our network
         self.z = np.dot(X, self.W1) + self.bias1# dot product of X (input) and first set of 3x2 weights
+        print("self z",self.z)
         self.z2 = self.sigmoid(self.z) # activation function
+        print("self z",self.z2)
         self.z3 = np.dot(self.z2, self.W2)+ self.bias2 # dot product of hidden layer (z2) and second set of 3x1 weights
         o = self.sigmoid(self.z3) # final activation function
         return o
 
     def sigmoid(self, s):
         # activation function
-        return 1/(1+np.exp(-s))
+        z =1/(1+np.exp(-s))
+        return z
 
     def sigmoidPrime(self, s):
         #derivative of sigmoid
@@ -72,12 +75,12 @@ class Neural_Network(object):
         """ First Layer """
         self.z2_error = self.o_delta.dot(self.W2.T) # z2 error: how much our hidden layer weights contributed to output error
         self.z2_delta = self.z2_error*self.sigmoidPrime(self.z2) # applying derivative of sigmoid to z2 error
-
         tempe = []
         for i in range(len(self.z2_delta)):
             for j in range(len(X)):
                 tester = self.z2_delta[i] * X[j] * -1
                 tempe.append(tester)
+
 
         if currentM == 0:
             self.summedBias2 = self.o_delta *-1
@@ -101,13 +104,13 @@ class Neural_Network(object):
     def UpdateWeights(self, n, m):
         """ update weights  """
         #update first layer of weights
-        print("len of weights", len(self.W1))
-        print("len of weights[0]", len(self.W1[0]))
-
         count = 0
+        print("This is W1[0][0]", self.W1[0][0])
         for i in range(len(self.W1)):
             for j in range(len(self.W1[i])):
                 newWeight = (self.summedLayer1[count] * n) / m
+                #print("summed layer",self.summedLayer1[count], "time n",n,"/ m",m)
+                #print("newWeight", newWeight)
                 self.W1[i][j] -= newWeight
                 count += 1
         #update second layer of weights
@@ -126,24 +129,52 @@ class Neural_Network(object):
             newWeight = (self.summedBias2[i] * n) / m
             self.bias2[i] -= newWeight
 
-    def miniBatch(self,n,m,mX,my):
-        for i in range(m):
+    def miniBatch(self,n,m,X,Y):
+        count = 0
+        miniBatchAmount = 0
+        for i in range(len(X)):
+            if count == m-1:
+                count = 0
+                miniBatchAmount +=1
+                NN.UpdateWeights(n,m)
+                print("minibatch:", miniBatchAmount)
+            elif count == 5:
+                sample = NN.forward(X[2])
+                expected = np.argmax(Y[2])
+                actual = np.argmax(sample)
+                print("Actual:",actual, "Expected:", expected)
+
             """ forward propergate """
-            resultForward = NN.forward(mX[i])
+            resultForward = NN.forward(X[i])
             """ Back propergate through last layer """
-            NN.backPropLayer2(mX[i],my[i],resultForward, i)
+            NN.backPropLayer2(X[i],Y[i],resultForward, i)
+            #print(NN.summedLayer2)
+            break
+            count += 1
+        print(miniBatchAmount, "mini batches ran")
 
 
+    def computeLoss(Y, Yhat):
+        m=Y.shape[1]
+        L= -(1./m) * (np.sum(np.multiply(np.log(Yhat),Y))+np.sum(np.multiply))
 
 
-mX = np.array(([0.1, 0.1],[0.1,0.2]), dtype=float)
-my = np.array(([1,0], [0,1]), dtype=float)
 
 
 #X = loadCSV('TrainDigitX.csv.gz')
 X = loadCSV('TrainDigitX.csv')
-Y = loadCSV('TrainDigitY.csv')
-#Y = loadCSV("TrainDigitY.csv.gz")
+Yraw = loadCSV('TrainDigitY.csv')
+#Yraw = loadCSV("TrainDigitY.csv.gz")
+Y=[]
+for i in range(len(Yraw)):
+    temp = []
+    for j in range(10):
+        if j == Yraw[i]:
+            temp.append(0.99)
+        else:
+            temp.append(0.01)
+    Y.append(temp)
+
 
 Ninput = 784
 Nhidden = 30
@@ -152,15 +183,44 @@ Noutput = 10
 NN = Neural_Network(Ninput, Nhidden, Noutput)
 m = 20
 n = 3
-epochs = 2
+epochs = 1
 
 for i in range(epochs):
+    print(i, ":")
     NN.miniBatch(n,m,X,Y)
-    NN.UpdateWeights(n, m)
-    meanSquare = NN.findError(my[1], mX[1])
-    meanSquare += NN.findError(my[0], mX[0])
-    meanSquare = meanSquare/2
-#print("avg",meanSquare)
+    #NN.UpdateWeights(n, m)
+    sample = NN.forward(X[2])
+    expected = np.argmax(Y[2])
+    actual = np.argmax(sample)
 
-#print(NN.forward(mX[0]))
-#print(NN.forward(mX[1]))
+    print("Actual:",actual, "Expected:", expected)
+    print()
+
+f= open("W1.txt","w+")
+for i in range(len(NN.W1)):
+    for j in range(len(NN.W1[i])):
+        f.write(str(NN.W1[i][j])+ " ")
+    f.write("\n")
+f.close
+file = open("W2.txt","w+")
+for i in range(len(NN.W2)):
+    for j in range(len(NN.W2[i])):
+        file.write(str(NN.W2[i][j])+ " ")
+    file.write("\n")
+file.close
+
+file = open("B1.txt","w+")
+for i in range(len(NN.bias1)):
+    file.write(str(NN.bias1[i])+ " ")
+file.close
+
+file = open("B2.txt","w+")
+for i in range(len(NN.bias2)):
+    file.write(str(NN.bias2[i])+ " ")
+file.close
+"""
+function to save Weights done
+Quadratic cost function
+Cross entropy function
+Test data
+"""
