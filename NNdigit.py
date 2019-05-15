@@ -9,15 +9,6 @@ def loadCSV(fileName):
     print(fileName, " loaded in successfuly")
     return data
 
-def load_data_wrapper():
-    training_inputs = loadCSV('TrainDigitX.csv.gz')
-    results = loadCSV("TrainDigitY.csv.gz")
-    training_results = [vectorized_result(y) for y in results] # vectorised results
-    training_data = list(zip(training_inputs, training_results))
-    test_inputs = loadCSV("TestDigitX.csv.gz")
-    testResults =  loadCSV("TestDigitY.csv.gz")
-    test_data = list(zip(test_inputs, testResults))
-    return (training_data, test_data)
 
 class Neural_Network(object):
     def __init__(self, Ninput, Nhidden, Noutput):
@@ -29,11 +20,11 @@ class Neural_Network(object):
         #weights
         #W1 = input -> hidden layer weights
         #W2 =  hidden layer -> output weights
-        self.W1 = np.random.rand(self.inputSize, self.hiddenSize)
+        self.W1 = np.random.randn(self.inputSize, self.hiddenSize)
         # (3x2) weight matrix from input to hidden layer
-        self.W2 = np.random.rand(self.hiddenSize, self.outputSize) # (3x1) weight matrix from hidden to output layer
-        self.bias1 = np.random.rand(self.hiddenSize)
-        self.bias2 = np.random.rand(self.outputSize)
+        self.W2 = np.random.randn(self.hiddenSize, self.outputSize) # (3x1) weight matrix from hidden to output layer
+        self.bias1 = np.random.randn(self.hiddenSize)
+        self.bias2 = np.random.randn(self.outputSize)
 
 
     def findError(self, y, X):
@@ -218,9 +209,3 @@ file = open("B2.txt","w+")
 for i in range(len(NN.bias2)):
     file.write(str(NN.bias2[i])+ " ")
 file.close
-"""
-function to save Weights done
-Quadratic cost function
-Cross entropy function
-Test data
-"""

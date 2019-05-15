@@ -17,12 +17,7 @@ class Neural_Network(object):
         self.outputSize = 2
         self.hiddenSize = 2
 
-        #weights
-        #W1 = input -> hidden layer weights
-        #W2 =  hidden layer -> output weights
-        #self.W1 = np.random.randn(self.inputSize, self.hiddenSize)
-        # (3x2) weight matrix from input to hidden layer
-        #self.W2 = np.random.randn(self.hiddenSize, self.outputSize) # (3x1) weight matrix from hidden to output layer
+
         self.W1 = np.array(([0.1, 0.1],[0.2, 0.1]), dtype=float)
         self.W2 = np.array(([0.1, 0.1],[0.1, 0.2]), dtype=float)
         self.bias1 = np.array(([0.1,0.1]), dtype=float)
@@ -40,8 +35,8 @@ class Neural_Network(object):
         self.z = np.dot(X, self.W1) + self.bias1# dot product of X (input) and first set of 3x2 weights
         self.z2 = self.sigmoid(self.z) # activation function
         self.z3 = np.dot(self.z2, self.W2)+ self.bias2 # dot product of hidden layer (z2) and second set of 3x1 weights
-        o = self.sigmoid(self.z3) # final activation function
-        return o
+        out = self.sigmoid(self.z3) # final activation function
+        return out
 
     def sigmoid(self, s):
         # activation function
@@ -54,33 +49,27 @@ class Neural_Network(object):
 
     def backPropLayer2(self, X, y,o, currentM):
         """ Second Layer """
-        print(")))))))))))))))))))))))))))))))))))))))))))")
-        self.o_error = y - o # error in output
-        self.o_delta = self.o_error*self.sigmoidPrime(o) # applying derivative of sigmoid to error
-        print("Delta", self.o_delta)
-        tmp = self.z2 * self.o_delta * -1
-        self.errorToNode = np.append(tmp, self.z2[::-1] * self.o_delta * -1)
-        print("error to node1",self.errorToNode)
+        self.oError = y - o # error in output
+        self.delta = self.oError*self.sigmoidPrime(o) # applying derivative of sigmoid to error
+        tmp = self.z2 * self.delta * -1
+        self.errorToNode = np.append(tmp, self.z2[::-1] * self.delta * -1)
 
         """ First Layer """
-        self.z2_error = self.o_delta.dot(self.W2.T) # z2 error: how much our hidden layer weights contributed to output error
-        print("error2",self.z2_error)
-        self.z2_delta = self.z2_error*self.sigmoidPrime(self.z2) # applying derivative of sigmoid to z2 error
-        print("delta 2", self.z2_delta)
-        tmp = X * self.z2_delta * -1
-        self.errorToNode2 = np.append(tmp, X[::-1] * self.z2_delta * -1)
-        print("errortonode2",self.errorToNode2)
+        self.z2Error = self.delta.dot(self.W2.T) # z2 error: how much our hidden layer weights contributed to output error
+        self.z2Delta = self.z2Error*self.sigmoidPrime(self.z2) # applying derivative of sigmoid to z2 error
+        tmp = X * self.z2Delta * -1
+        self.errorToNode2 = np.append(tmp, X[::-1] * self.z2Delta * -1)
 
         if currentM == 0:
-            self.summedBias2 = self.o_delta *-1
-            self.summedBias1 = self.z2_delta *-1
+            self.summedBias2 = self.delta *-1
+            self.summedBias1 = self.z2Delta *-1
             self.summedLayer2 = self.errorToNode
             self.summedLayer1 = self.errorToNode2
         else:
             self.summedLayer2 += self.errorToNode
             self.summedLayer1 += self.errorToNode2
-            self.summedBias2 += self.o_delta *-1
-            self.summedBias1 +=  self.z2_delta *-1
+            self.summedBias2 += self.delta *-1
+            self.summedBias1 +=  self.z2Delta *-1
 
 
 
